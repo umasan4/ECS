@@ -10,18 +10,18 @@
 		"ghcr.io/devcontainers/features/terraform:1": {}
 	}
 
-	// Features to add to the dev container. More info: https://containers.dev/features.
+	// 開発コンテナに追加する機能。詳細情報: https://containers.dev/features
 	// "features": {},
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// 'forwardPorts' を使用して、コンテナ内のポートをローカルで利用可能なリストを作成します。
 	// "forwardPorts": [],
 
-	// Use 'postCreateCommand' to run commands after the container is created.
+	// コンテナ作成後にコマンドを実行するには 'postCreateCommand' を使用します。
 	// "postCreateCommand": "yarn install",
 
-	// Configure tool-specific properties.
+	// ツール固有のプロパティを設定します。
 	// "customizations": {},
 
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// rootとして接続するにはコメントを外してください。詳細情報: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
 }

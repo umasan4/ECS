@@ -1,0 +1,10 @@
+# terraform.tfvars
+#--------------------------------
+# project and environment
+#--------------------------------
+project     = "ecs-practice"
+environment = "dev"
+
+#--------------------------------
+# mysql
+#--------------------------------
