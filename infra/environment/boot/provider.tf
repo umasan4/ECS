@@ -1,4 +1,12 @@
 #--------------------------------
+# vars
+#--------------------------------
+locals {
+  project     = "ecs-practice"
+  environment = "boot"
+}
+
+#--------------------------------
 # terraform
 #--------------------------------
 terraform {
@@ -13,9 +21,10 @@ terraform {
     }
   }
 
+  # リモートバックエンドの指定
   backend "s3" {
-    bucket       = "ecs-practice-remote-backend-bootstrap"
-    key          = "bootstrap/terraform.tfstate"
+    bucket       = "ecs-practice-remote-backend-boot"
+    key          = "boot/terraform.tfstate"
     region       = "ap-northeast-1"
     use_lockfile = true
     encrypt      = true
@@ -30,8 +39,8 @@ provider "aws" {
   # デフォルトタグ(全リソースに付与)
   default_tags {
     tags = {
-      Project     = var.project
-      Environment = var.environment
+      Project     = local.project
+      Environment = local.environment
     }
   }
 }

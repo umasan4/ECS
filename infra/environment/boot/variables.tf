@@ -1,10 +1,4 @@
-# variables.tf
-#--------------------------------
-# project and environment
-#--------------------------------
-variable "project" { type = string }
-variable "environment" { type = string }
-
+# tagsは、provider.tfでローカル変数として定義
 #--------------------------------
 # mysql
 #--------------------------------
@@ -24,7 +18,7 @@ variable "mysql_password" {
 # 環境名をリストに追加することで複数環境分のバケットを作成可能
 variable "rb_environment" {
   type    = list(string)
-  default = ["dev", "bootstrap"]
+  default = ["boot","dev"]
 }
 
 variable "bucket_suffix" {
