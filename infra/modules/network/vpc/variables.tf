@@ -1,10 +1,7 @@
 #--------------------------------
 # tags
 #--------------------------------
-variable "name" {
-  description = "tags in resource name"
-  type        = string
-}
+variable "name" { type = string }
 
 #--------------------------------
 # network
@@ -18,4 +15,14 @@ variable "instance_tenancy" {
   type        = string
   description = "EC2作成時に物理サーバを占有するか否か"
   default     = "default"
+}
+
+variable "enable_dns_support" {
+  description = "VPC内のインスタンスがDNS解決できるか否か"
+  default     = true
+}
+
+variable "enable_dns_hostnames" {
+  description = "PublicIP付与されたインスタンスにドメインも付与するか否か"
+  default     = true
 }

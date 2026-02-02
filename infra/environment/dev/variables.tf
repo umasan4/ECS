@@ -14,7 +14,7 @@ variable "environment" {
 #--------------------------------
 # network
 #--------------------------------
-# vpc
+### vpc ###
 variable "cidr_block" { type = string }
 variable "instance_tenancy" {
   type        = string
@@ -22,11 +22,19 @@ variable "instance_tenancy" {
   default     = "default"
 }
 
-# subnet
+### subnet ###
 variable "public_subnets" {
-  type = map(string)
+  type = map(object({
+    cidr_block              = string
+    availability_zone       = string
+    map_public_ip_on_launch = bool
+  }))
 }
 
 variable "private_subnets" {
-  type = map(string)
+  type = map(object({
+    cidr_block              = string
+    availability_zone       = string
+    map_public_ip_on_launch = bool
+  }))
 }
