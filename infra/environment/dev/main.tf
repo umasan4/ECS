@@ -2,8 +2,8 @@ module "vpc" {
   source = "../../modules/network/vpc"
 
   # tags
-  project     = local.project
-  environment = local.environment
+  project     = var.project
+  environment = var.environment
 
   # network
   cidr_block       = var.cidr_block

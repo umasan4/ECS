@@ -4,12 +4,12 @@
 resource "aws_s3_bucket" "remote_backend" {
   for_each = toset(var.rb_environment)
 
-  bucket = "${local.project}-${var.bucket_suffix}-${each.key}"
+  bucket = "${var.project}-${var.bucket_suffix}-${each.key}"
 
   lifecycle { prevent_destroy = false }
 
   tags = {
-    Name        = "${local.project}-${var.bucket_suffix}-${each.key}"
+    Name        = "${var.project}-${var.bucket_suffix}-${each.key}"
     environment = "${each.key}"
   }
 }

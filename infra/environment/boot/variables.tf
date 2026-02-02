@@ -1,4 +1,17 @@
-# tagsは、provider.tfでローカル変数として定義
+#--------------------------------
+# commons
+#--------------------------------
+# tags
+variable "project" {
+  type = string
+  default = "ecs-practice"
+}
+
+variable "environment" {
+  type = string
+  default = "boot"
+}
+
 #--------------------------------
 # mysql
 #--------------------------------

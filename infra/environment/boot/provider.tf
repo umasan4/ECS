@@ -1,12 +1,4 @@
 #--------------------------------
-# vars
-#--------------------------------
-locals {
-  project     = "ecs-practice"
-  environment = "boot"
-}
-
-#--------------------------------
 # terraform
 #--------------------------------
 terraform {
@@ -39,8 +31,8 @@ provider "aws" {
   # デフォルトタグ(全リソースに付与)
   default_tags {
     tags = {
-      Project     = local.project
-      Environment = local.environment
+      Project     = var.project
+      Environment = var.environment
     }
   }
 }
