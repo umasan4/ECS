@@ -75,3 +75,15 @@ variable "database_sg" {
     source_security_group_id = optional(string)
   }))
 }
+
+### vpc_endpoint_sg ###
+variable "vpc_endpoint_sg" {
+  type = map(object({
+    type                     = string
+    from_port                = number
+    to_port                  = number
+    protocol                 = string
+    cidr_blocks              = optional(list(string))
+    source_security_group_id = optional(string)
+  }))
+}

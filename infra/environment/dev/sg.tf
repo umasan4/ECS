@@ -11,7 +11,7 @@ module "frontend_sg" {
   sgs    = var.frontend_sg
 }
 
-# frontend_sg
+# webapp_sg
 module "webapp_sg" {
   source = "../../modules/network/sg"
   name   = "${var.project}-${var.environment}-webapp_sg"
@@ -33,6 +33,24 @@ module "database_sg" {
       from_port                = 3306
       to_port                  = 3306
       source_security_group_id = module.webapp_sg.security_group_id
+    }
+  })
+}
+
+# vpc_endpoint_sg
+module "vpc_endpoint_sg" {
+  source = "../../modules/network/sg"
+  name   = "${var.project}-${var.environment}-vpc-endpoint-sg"
+  vpc_id = module.network.vpc_id
+
+  # vpc.main の cidr からのtrafficを許可
+  sgs = merge(var.vpc_endpoint_sg, {
+    "in_http_from_VPC.main_cidr" = {
+      type        = "ingress"
+      protocol    = "tcp"
+      from_port   = 443
+      to_port     = 443
+      cidr_blocks = [module.network.vpc_cidr]
     }
   })
 }

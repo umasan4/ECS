@@ -47,7 +47,7 @@ variable "private_subnets" {
 # route_table
 #--------------------------------
 variable "public_routes" {
-  default     = {}
+  default = {}
   type = map(object({
     cidr_block           = string
     network_interface_id = optional(string)
@@ -56,7 +56,7 @@ variable "public_routes" {
 }
 
 variable "private_routes" {
-  default     = {}
+  default = {}
   type = map(object({
     cidr_block           = string
     network_interface_id = optional(string)
