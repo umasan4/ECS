@@ -195,3 +195,43 @@ module "webapp" {
   scan_on_push         = var.scan_on_push
   force_delete         = var.force_delete
 }
+
+#--------------------------------
+# elb
+#--------------------------------
+### frontend_alb ###
+module "frontend" {
+  source                     = "../../modules/alb"
+  lb_name                    = "${var.project}-${var.environment}-alb-frontend"
+  internal                   = var.internal
+  load_balancer_type         = var.load_balancer_type
+  security_groups            = [module.frontend_sg.sg_ids]
+  subnets                    = values(module.vpc_base.public_subnet_ids)
+  enable_deletion_protection = var.enable_deletion_protection
+  enable_http2               = var.enable_http2
+
+  ### target_group ###
+  tg_name     = "${var.project}-${var.environment}-tg-frontend"
+  vpc_id      = module.vpc_base.vpc_id
+  port        = var.port
+  protocol    = var.protocol
+  target_type = var.target_type
+
+  ### health_check ###
+  path                = var.path
+  interval            = var.interval
+  timeout             = var.timeout
+  healthy_threshold   = var.healthy_threshold
+  unhealthy_threshold = var.unhealthy_threshold
+  matcher             = var.matcher
+  hc_port             = var.hc_port
+  hc_protocol         = var.hc_protocol
+
+  ### listener ###
+  listener_name     = "${var.project}-${var.environment}-listener-frontend"
+  listener_port     = var.listener_port
+  listener_protocol = var.listener_protocol
+
+  ### default_action ###
+  listener_type = var.listener_type
+}

@@ -1,4 +1,6 @@
 resource "aws_ecr_repository" "main" {
+  tags = { Name = var.name }
+
   # リポジトリ名
   name = var.name
 
