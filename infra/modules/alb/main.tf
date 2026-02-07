@@ -9,6 +9,9 @@
 # リスナーグループ
 # インスタンスやIPアドレスを指定できる
 
+#------------------------------
+# elb
+#------------------------------
 resource "aws_lb" "frontend" {
   tags                       = { Name = var.lb_name }
   name                       = var.lb_name
@@ -24,6 +27,9 @@ resource "aws_lb" "frontend" {
   enable_http2 = var.enable_http2
 }
 
+#------------------------------
+# target group
+#------------------------------
 resource "aws_lb_target_group" "ecs" {
   tags   = { Name = var.tg_name }
   name   = var.tg_name
@@ -57,6 +63,9 @@ resource "aws_lb_target_group" "ecs" {
   }
 }
 
+#------------------------------
+# listener
+#------------------------------
 resource "aws_lb_listener" "http" {
   tags              = { Name = var.listener_name }
   load_balancer_arn = aws_lb.frontend.arn

@@ -235,3 +235,17 @@ module "frontend" {
   ### default_action ###
   listener_type = var.listener_type
 }
+
+#--------------------------------
+# ECS
+#--------------------------------
+module "ecs" {
+  source = "../../modules/ecs"
+
+  ### policy and role ###
+  role_name   = "${var.project}-${var.environment}-ecs-role"
+  policy_name = "${var.project}-${var.environment}-ecs-exec-task-policy"
+  log_name    = "/ecs/${var.project}/${var.environment}/webapp"
+
+  ###  ###
+}
