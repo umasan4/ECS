@@ -11,18 +11,6 @@ variable "environment" {
   default = "boot"
 }
 
-#--------------------------------
-# mysql
-#--------------------------------
-variable "mysql_database" { type = string }
-variable "mysql_username" { type = string }
-variable "mysql_password" {
-  description = "MySQL password"
-  type        = string
-  sensitive   = true
-  # sensitive...planなどで非出力
-}
-
 #-------------------------------
 # remote backend
 #-------------------------------

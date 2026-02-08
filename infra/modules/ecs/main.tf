@@ -1,9 +1,11 @@
-# policy, role の中身・実態は, aws_iam_policy_document に記述
-# 用意するは2つ (ECSタスク実行権限, SecretManagerアクセス権限)
+data "aws_region" "current" {}
 
 #------------------------------
 # iam policy
 #------------------------------
+# policy, role の中身・実態は, aws_iam_policy_document に記述
+# 用意するは2つ (ECSタスク実行権限, SecretManagerアクセス権限)
+
 resource "aws_iam_policy" "secretmanager_read" {
   description = "ECS -> SecretManager Access to fetch secrets"
   tags        = { Name = var.policy_name }
@@ -67,5 +69,105 @@ resource "aws_iam_role_policy_attachment" "ecs_exec_task" {
 resource "aws_cloudwatch_log_group" "webapp" {
   tags              = { Name = var.log_name }
   name              = var.log_name
-  retention_in_days = 7 # ログの保存期間(デフォルトは無期限)
+  retention_in_days = var.retention_in_days
+}
+
+#------------------------------
+# ecs
+#------------------------------
+### cluster ###
+resource "aws_ecs_cluster" "main" {
+  name = var.cluster_name
+  tags = { Name = var.cluster_name }
+
+  # Cloudwatchにメトリクスを送信する機能
+  setting {
+    name  = "containerInsights"    # 固定(これしか指定できない)
+    value = var.container_insights # enable or disabled
+  }
+}
+
+### task definition ###
+resource "aws_ecs_task_definition" "webapp" {
+  family = var.family
+
+  # ECSが使用するIAMロール
+  execution_role_arn       = aws_iam_role.ecs_exec.arn
+  requires_compatibilities = var.requires_compatibilities
+  network_mode             = var.network_mode
+  cpu                      = var.cpu
+  memory                   = var.memory
+
+  ### container definition ###
+  container_definitions = jsonencode([
+    {
+      name  = var.container_name
+      image = var.image_uri
+      # コンテナフラグ(trueに指定されたコンテナが停止するとタスク全体が停止)
+      essential = true
+      # ポートフォワーディング設定(Fagateは、container,hostのportを同じに設定)
+      portMappings = [
+        {
+          containerPort = var.container_port
+          hostPort      = var.container_port
+          protocol      = "tcp"
+        }
+      ]
+      environment = [
+        {
+          name  = "MYSQL_HOST"
+          value = var.mysql_host
+        },
+        {
+          name  = "MYSQL_USER"
+          value = var.mysql_username
+        },
+        {
+          name  = "MYSQL_PASSWORD"
+          value = var.mysql_password
+        },
+        {
+          name  = "MYSQL_DATABASE"
+          value = var.mysql_database
+        },
+        {
+          name  = "MYSQL_SSL"
+          value = var.mysql_ssl
+        }
+      ]
+      # ログの出力先(logDriver="awslogs" に指定するとCloudWatch logs にログ転送する)
+      logConfiguration = {
+        logDriver = "awslogs"
+        # 具体的な転送先を指定 (どのロググループ, どのリージョン)
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.webapp.id
+          "awslogs-region"        = data.aws_region.current.name
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    }
+  ])
+}
+
+### service ###
+resource "aws_ecs_service" "webapp" {
+  tags = { Name = var.service_name }
+
+  name            = var.service_name
+  cluster         = aws_ecs_cluster.main.arn
+  task_definition = aws_ecs_task_definition.webapp.arn
+  desired_count   = var.desired_count
+  launch_type     = var.launch_type
+
+  network_configuration {
+    subnets          = var.subnets
+    security_groups  = var.security_groups
+    assign_public_ip = var.assign_public_ip
+  }
+
+  load_balancer {
+    target_group_arn = var.target_group_arn
+    container_name   = var.container_name
+    container_port   = var.container_port
+  }
 }

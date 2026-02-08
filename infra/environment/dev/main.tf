@@ -11,193 +11,14 @@ module "vpc_base" {
 }
 
 #--------------------------------
-# sg
+# ECR (Data Source)
 #--------------------------------
-### frontend_sg ###
-module "frontend_sg" {
-  source = "../../modules/sg"
-  name   = "${var.project}-${var.environment}-frontend_sg"
-  vpc_id = module.vpc_base.vpc_id
-  sgs    = var.frontend_sg
-}
-
-#### webapp_sg ###
-module "webapp_sg" {
-  source = "../../modules/sg"
-  name   = "${var.project}-${var.environment}-webapp_sg"
-  vpc_id = module.vpc_base.vpc_id
-  sgs    = var.webapp_sg
-}
-
-### database_sg ###
-module "database_sg" {
-  source = "../../modules/sg"
-  name   = "${var.project}-${var.environment}-database_sg"
-  vpc_id = module.vpc_base.vpc_id
-
-  # webapp_sg からのtrafficを許可
-  sgs = merge(var.database_sg, {
-    "in_tcp_3306_from_webapp" = {
-      type                     = "ingress"
-      protocol                 = "tcp"
-      from_port                = 3306
-      to_port                  = 3306
-      source_security_group_id = module.webapp_sg.sg_ids
-    }
-  })
-}
-
-### vpc_endpoint_sg ###
-module "vpc_endpoint_sg" {
-  source = "../../modules/sg"
-  name   = "${var.project}-${var.environment}-vpc-endpoint-sg"
-  vpc_id = module.vpc_base.vpc_id
-
-  # vpc.main の cidr からのtrafficを許可
-  sgs = merge(var.vpc_endpoint_sg, {
-    "in_http_from_VPC.main_cidr" = {
-      type        = "ingress"
-      protocol    = "tcp"
-      from_port   = 443
-      to_port     = 443
-      cidr_blocks = [module.vpc_base.vpc_cidr]
-    }
-  })
+data "aws_ecr_repository" "webapp" {
+  name = "${var.project}-ecr-webapp" # bootで作成した名前を指定
 }
 
 #--------------------------------
-# vpce
-#--------------------------------
-# (if型 -> sg & subnet) / (gw型 -> rt)
-
-### S3 ###
-module "s3_vpce" {
-  source = "../../modules/vpce"
-  name   = "${var.project}-${var.environment}-vpce-s3"
-  vpc_id = module.vpc_base.vpc_id
-
-  vpces = merge(var.s3_vpce, {
-    "s3_vpce" = {
-      vpc_endpoint_type = local.type_gw
-      service_name      = "${local.service_prefix}.${data.aws_region.current.id}.s3"
-      route_table_ids   = [module.vpc_base.private_rt_ids]
-    }
-  })
-}
-
-### ECR_Docker ###
-module "ecr_dkr_vpce" {
-  source = "../../modules/vpce"
-  name   = "${var.project}-${var.environment}-ecr-dkr-vpce"
-  vpc_id = module.vpc_base.vpc_id
-
-  vpces = merge(var.ecr_dkr_vpce, {
-    "ecr-dkr_vpce" = {
-      vpc_endpoint_type  = local.type_if
-      service_name       = "${local.service_prefix}.${data.aws_region.current.id}.ecr.dkr"
-      security_group_ids = [module.vpc_endpoint_sg.sg_ids]
-      subnet_ids         = values(module.vpc_base.private_subnet_ids)
-    }
-  })
-}
-
-### ECR_API ###
-module "ecr_api" {
-  source = "../../modules/vpce"
-  name   = "${var.project}-${var.environment}-ecr-api-vpce"
-  vpc_id = module.vpc_base.vpc_id
-
-  vpces = merge(var.ecr_api, {
-    "ecr-api_vpce" = {
-      vpc_endpoint_type   = local.type_if
-      service_name        = "${local.service_prefix}.${data.aws_region.current.id}.ecr.api"
-      security_group_ids  = [module.vpc_endpoint_sg.sg_ids]
-      subnet_ids          = values(module.vpc_base.private_subnet_ids)
-      private_dns_enabled = true
-    }
-  })
-}
-
-### cloudwatch ###
-module "cloudwatch" {
-  source = "../../modules/vpce"
-  name   = "${var.project}-${var.environment}-cloudwatch-vpce"
-  vpc_id = module.vpc_base.vpc_id
-
-  vpces = merge(var.cloudwatch, {
-    "cloudwatch" = {
-      vpc_endpoint_type  = local.type_if
-      service_name       = "${local.service_prefix}.${data.aws_region.current.id}.logs"
-      security_group_ids = [module.vpc_endpoint_sg.sg_ids]
-      subnet_ids         = values(module.vpc_base.private_subnet_ids)
-    }
-  })
-}
-
-### ssm ###
-module "ssm" {
-  source = "../../modules/vpce"
-  name   = "${var.project}-${var.environment}-ssm-vpce"
-  vpc_id = module.vpc_base.vpc_id
-
-  vpces = merge(var.ssm, {
-    "ssm" = {
-      vpc_endpoint_type   = local.type_if
-      service_name        = "${local.service_prefix}.${data.aws_region.current.id}.ssm"
-      security_group_ids  = [module.vpc_endpoint_sg.sg_ids]
-      subnet_ids          = values(module.vpc_base.private_subnet_ids)
-      private_dns_enabled = true
-    }
-  })
-}
-
-### secret_manager ###
-module "secretmanager" {
-  source = "../../modules/vpce"
-  name   = "${var.project}-${var.environment}-secretmanager-vpce"
-  vpc_id = module.vpc_base.vpc_id
-
-  vpces = merge(var.secretmanager, {
-    "secretmanager" = {
-      vpc_endpoint_type   = local.type_if
-      service_name        = "${local.service_prefix}.${data.aws_region.current.id}.secretsmanager"
-      security_group_ids  = [module.vpc_endpoint_sg.sg_ids]
-      subnet_ids          = values(module.vpc_base.private_subnet_ids)
-      private_dns_enabled = true
-    }
-  })
-}
-
-### ssm_message's ###
-module "ssmmessages" {
-  source = "../../modules/vpce"
-  name   = "${var.project}-${var.environment}-ssmmessages-vpce"
-  vpc_id = module.vpc_base.vpc_id
-
-  vpces = merge(var.ssmmessages, {
-    "ssmmessages" = {
-      vpc_endpoint_type   = local.type_if
-      service_name        = "${local.service_prefix}.${data.aws_region.current.id}.ssmmessages"
-      security_group_ids  = [module.vpc_endpoint_sg.sg_ids]
-      subnet_ids          = values(module.vpc_base.private_subnet_ids)
-      private_dns_enabled = true
-    }
-  })
-}
-
-#--------------------------------
-# ecr
-#--------------------------------
-module "webapp" {
-  source               = "../../modules/ecr"
-  name                 = "${var.project}-${var.environment}-ecr-webapp"
-  image_tag_mutability = var.image_tag_mutability
-  scan_on_push         = var.scan_on_push
-  force_delete         = var.force_delete
-}
-
-#--------------------------------
-# elb
+# ELB
 #--------------------------------
 ### frontend_alb ###
 module "frontend" {
@@ -239,13 +60,43 @@ module "frontend" {
 #--------------------------------
 # ECS
 #--------------------------------
-module "ecs" {
+module "ecs_webapp" {
   source = "../../modules/ecs"
 
   ### policy and role ###
-  role_name   = "${var.project}-${var.environment}-ecs-role"
-  policy_name = "${var.project}-${var.environment}-ecs-exec-task-policy"
-  log_name    = "/ecs/${var.project}/${var.environment}/webapp"
+  policy_name       = "${var.project}-${var.environment}-ecs-exec-task-policy"
+  role_name         = "${var.project}-${var.environment}-ecs-role"
+  log_name          = "/ecs/${var.project}/${var.environment}/webapp"
+  retention_in_days = var.retention_in_days
 
-  ###  ###
+  ### cluster ###
+  cluster_name       = "${var.project}-${var.environment}-ecs-cluster"
+  container_insights = var.container_insights
+
+  ### task definition ###
+  family                   = "${var.project}-${var.environment}-ecs-webapp-task"
+  cpu                      = var.cpu
+  memory                   = var.memory
+  network_mode             = var.network_mode
+  requires_compatibilities = var.requires_compatibilities
+
+  ### task definition -> container definition ###
+  container_name = "webapp"
+  container_port = var.container_port
+  image_uri      = "${data.aws_ecr_repository.webapp.repository_url}:latest"
+
+  mysql_database = var.mysql_database
+  mysql_username = var.mysql_username
+  mysql_password = var.mysql_password
+  mysql_host     = var.mysql_host
+  mysql_ssl      = var.mysql_ssl
+
+  ### service ###
+  service_name     = "${var.project}-${var.environment}-ecs-webapp-service"
+  desired_count    = var.desired_count
+  launch_type      = var.launch_type
+  assign_public_ip = var.assign_public_ip
+  subnets          = values(module.vpc_base.private_subnet_ids)
+  security_groups  = [module.webapp_sg.sg_ids]
+  target_group_arn = module.frontend.tg_arn
 }

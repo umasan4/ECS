@@ -2,7 +2,7 @@ output "load_balancer_arn" {
   value = aws_lb.frontend.arn
 }
 
-output "target_group_arn" {
+output "tg_arn" {
   value = aws_lb_target_group.ecs.arn
 }
 

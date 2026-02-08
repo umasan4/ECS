@@ -14,6 +14,7 @@ services:
     build:
       context: ./app
       dockerfile: ./Dockerfile
+    platform: linux/amd64
     command: npm start
     ports: 
       - '3000:3000'

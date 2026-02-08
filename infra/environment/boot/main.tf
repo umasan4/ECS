@@ -94,3 +94,14 @@ resource "aws_s3_bucket_policy" "rb_policy" {
     ]
   })
 }
+
+#--------------------------------
+# ECR (Shared)
+#--------------------------------
+module "ecr_webapp" {
+  source               = "../../modules/ecr"
+  name                 = "${var.project}-ecr-webapp" # 環境に依存しない名前に変更
+  image_tag_mutability = "MUTABLE"
+  scan_on_push         = true
+  force_delete         = false
+}

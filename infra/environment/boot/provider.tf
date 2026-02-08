@@ -20,6 +20,7 @@ terraform {
     region       = "ap-northeast-1"
     use_lockfile = true
     encrypt      = true
+    profile      = "ecs-practice"
   }
 }
 
