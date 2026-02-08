@@ -16,3 +16,25 @@ resource "aws_ecr_repository" "main" {
   # イメージが保存されていてもリポジトリを削除可能か否か
   force_delete = var.force_delete
 }
+
+# 最新の 30 個だけを残してそれ以外を削除するポリシー
+resource "aws_ecr_lifecycle_policy" "main" {
+  repository = aws_ecr_repository.main.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 30 images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 30
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}

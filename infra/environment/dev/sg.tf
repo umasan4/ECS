@@ -6,15 +6,7 @@ module "frontend_sg" {
   source = "../../modules/sg"
   name   = "${var.project}-${var.environment}-frontend_sg"
   vpc_id = module.vpc_base.vpc_id
-  sgs = merge(var.frontend_sg, {
-    "ingress_listener_port" = {
-      type        = "ingress"
-      protocol    = "tcp"
-      from_port   = var.listener_port
-      to_port     = var.listener_port
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-  })
+  sgs    = var.frontend_sg
 }
 
 #### webapp_sg ###
@@ -23,7 +15,7 @@ module "webapp_sg" {
   name   = "${var.project}-${var.environment}-webapp_sg"
   vpc_id = module.vpc_base.vpc_id
   sgs    = var.webapp_sg
-}
+  }
 
 ### database_sg ###
 module "database_sg" {

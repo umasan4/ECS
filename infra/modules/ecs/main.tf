@@ -98,6 +98,12 @@ resource "aws_ecs_task_definition" "webapp" {
   cpu                      = var.cpu
   memory                   = var.memory
 
+  # 「このタスクは X86_64 (AMD64) で動かす」と明示的に設定
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = "ARM64"
+  }
+
   ### container definition ###
   container_definitions = jsonencode([
     {
@@ -141,7 +147,7 @@ resource "aws_ecs_task_definition" "webapp" {
         # 具体的な転送先を指定 (どのロググループ, どのリージョン)
         options = {
           "awslogs-group"         = aws_cloudwatch_log_group.webapp.id
-          "awslogs-region"        = data.aws_region.current.name
+          "awslogs-region"        = data.aws_region.current.id
           "awslogs-stream-prefix" = "ecs"
         }
       }
