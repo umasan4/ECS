@@ -30,7 +30,7 @@ variable "container_insights" { type = string }
 ### task definition ###
 variable "family" {
   description = "タスク定義の名前"
-  type        = string
+  type        = string,えcsのブランチを切りたい
 }
 variable "network_mode" {
   description = "Fargate なら awsvpcを指定"

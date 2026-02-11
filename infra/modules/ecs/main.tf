@@ -1,3 +1,6 @@
+#------------------------------
+# vars
+#------------------------------
 data "aws_region" "current" {}
 
 #------------------------------
@@ -73,7 +76,7 @@ resource "aws_cloudwatch_log_group" "webapp" {
 }
 
 #------------------------------
-# ecs
+# ECS
 #------------------------------
 ### cluster ###
 resource "aws_ecs_cluster" "main" {
@@ -81,7 +84,7 @@ resource "aws_ecs_cluster" "main" {
   tags = { Name = var.cluster_name }
 
   # Cloudwatchにメトリクスを送信する機能
-  setting {
+  setting { 
     name  = "containerInsights"    # 固定(これしか指定できない)
     value = var.container_insights # enable or disabled
   }
@@ -93,14 +96,22 @@ resource "aws_ecs_task_definition" "webapp" {
 
   # ECSが使用するIAMロール
   execution_role_arn       = aws_iam_role.ecs_exec.arn
+
+  # タスクの起動タイプ(有効な値: EC2, EXTERNAL, FARGATE, MANAGED_INSTANCES)
   requires_compatibilities = var.requires_compatibilities
+  
+  # コンテナのNWモード(有効な値: awsvpc、bridge、host、none)
   network_mode             = var.network_mode
+
+  # H/W スペックに関する指定
   cpu                      = var.cpu
   memory                   = var.memory
 
   # 「このタスクは X86_64 (AMD64) で動かす」と明示的に設定
   runtime_platform {
+    # Fargateの場合は、ここでOSを指定
     operating_system_family = "LINUX"
+    # CPUを指定(M系CPUのMACはARM64を指定)
     cpu_architecture        = "ARM64"
   }
 
