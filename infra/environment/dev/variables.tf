@@ -244,18 +244,6 @@ variable "listener_protocol" { type = string }
 ### default_action ###
 variable "listener_type" { type = string }
 
-#--------------------------------
-# mysql
-#--------------------------------
-variable "mysql_host" { type = string }
-variable "mysql_database" { type = string }
-variable "mysql_username" { type = string }
-variable "mysql_ssl" { type = string }
-variable "mysql_password" {
-  type      = string
-  sensitive = true # planなどで非出力
-}
-
 #------------------------------
 # ECS
 #------------------------------
@@ -264,63 +252,43 @@ variable "retention_in_days" {
   type        = number
 }
 
-### cluster ###
-# variable "cluster_name" { type = string }
+#------------------------------
+# ECS / Clustr
+#------------------------------
 variable "container_insights" { type = string }
 
-### task definition ###
-variable "network_mode" { type = string }
-variable "requires_compatibilities" { type = list(string) }
-variable "cpu" { type = number }
-variable "memory" { type = number }
-variable "container_port" { type = number }
-
-### service ###
-variable "desired_count" {
-  description = "【重要】常に稼働させるコンテナの数"
-  type        = number
-}
-variable "launch_type" {
-  description = "マシンの起動タイプ"
-  type        = string
-}
-variable "assign_public_ip" {
-  description = "ブリックIPが必要か否か、Public Subnet なら true"
-  type        = bool
-}
 
 #------------------------------
 # task definition
 #------------------------------
 # logConfiguration(ログの出力先)は、mainにハードコード
+# familyは、var.projectと併せるため objectの外に定義
 
-variable "task" {
+variable "task_conf" {
   description = "タスク定義"
   type = object({
 
-    # foundation
-    family                   = string
-    requires_compatibilities = list(string) # 起動モード
-    network_mode             = string       # NWモード(Fargateならawsvpc)
-    cpu                      = number
-    memory                   = number
+    # task
+    cpu                      = number       # (H/W) CPU
+    memory                   = number       # (H/W) メモリ
+    network_mode             = string       # (NW) モード (Fargate -> awsvpc)
+    requires_compatibilities = list(string) # (OP) 起動モード (Fargate -> FARGATE)
 
-    # os / cpu
-    runtime_platform = object({
-      operating_system_family = string # 使用するOS(FargateはLinuxを指定)
-      cpu_architecture        = string # 使用するCPU(M系CPUのMCはARM64を指定)
-    })
+    # runtime_platform
+    operating_system_family = string # OS (Fargate -> Linux)
+    cpu_architecture        = string # (H/W) CPUアーキテクチャ (AppleシリコンMAC -> ARM64)
 
-    # container_config
-    container_name = string # コンテナ名
-    container_port = number # コンテナポート(Fargateの場合は、hostと揃える)
-    image_uri      = string
-    essential      = bool   # 停止フラグ(Tのコンテナが止まるとタスク全体が停止する)
-    protocol       = string # 使用プロトコル(tcp)
+    # container_definitions
+    name      = string # コンテナ名
+    essential = bool   # (OP) 停止フラグ(Trueのコンテナが止まるとタスク全体が停止)
+
+    # port_mappings
+    port     = number # (NW) ポート (Fargate -> hostと揃える)
+    protocol = string # (NW) プロトコル (Fargate -> tcp)
   })
 }
 
-variable "db_config" {
+variable "db_conf" {
   description = "データベースの接続情報"
   type = object({
     host     = string
@@ -330,4 +298,16 @@ variable "db_config" {
     ssl      = string
   })
   sensitive = true # planに非出力(stateには記述される点に留意)
+}
+
+#------------------------------
+# ECS / Service
+#------------------------------
+variable "service_conf" {
+  description = "サービス設定"
+  type = object({
+    desired_count    = number # 稼働させるコンテナの数
+    launch_type      = string # マシンの起動タイプ
+    assign_public_ip = bool   # PublicIPが必要か
+  })
 }

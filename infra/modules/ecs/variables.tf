@@ -26,23 +26,27 @@ variable "family" {
   type        = string
 }
 
+variable "image_uri" {
+  description = "コンテナイメージ"
+  type        = string
+}
+
 variable "task_conf" {
   description = "タスク定義"
   type = object({
 
-    # task_definition
+    # task
     cpu                      = number       # (H/W) CPU
     memory                   = number       # (H/W) メモリ
     network_mode             = string       # (NW) モード (Fargate -> awsvpc)
     requires_compatibilities = list(string) # (OP) 起動モード (Fargate -> FARGATE)
 
     # runtime_platform
-    operating_system_family = string # OS (Fargate -> Linux)
+    operating_system_family = string # OS (Fargate -> LINUX) ※大文字で指定
     cpu_architecture        = string # (H/W) CPUアーキテクチャ (AppleシリコンMAC -> ARM64)
 
     # container_definitions
     name      = string # コンテナ名
-    image_uri = string # コンテナイメージ
     essential = bool   # (OP) 停止フラグ(Trueのコンテナが止まるとタスク全体が停止)
 
     # port_mappings
@@ -67,20 +71,15 @@ variable "db_conf" {
 # service
 #------------------------------
 variable "service_conf" {
+  description = "サービス設定"
   type = object({
-
-    service_name  = string # サービス名
-    desired_count = number # 稼働させるコンテナの数
-    launch_type   = string # マシンの起動タイプ
-
-    # network_configuration
-    subnets          = list(string) # subnet
-    security_groups  = list(string) # sg
-    assign_public_ip = bool         # PublicIPが必要か
-
-    # load_balancer
-    target_group_arn = string # tg_group
-    #container_name   = task_configで定義
-    #container_port   = task_cofnigで定義
+    desired_count    = number # 稼働させるコンテナの数
+    launch_type      = string # マシンの起動タイプ
+    assign_public_ip = bool   # PublicIPが必要か
   })
 }
+
+variable "service_name" { type = string }          # サービス名
+variable "subnets" { type = list(string) }         # サブネット
+variable "security_groups" { type = list(string) } # セキュリティグループ
+variable "target_group_arn" { type = string }      # ELBのターゲットグループARN

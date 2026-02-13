@@ -101,15 +101,15 @@ resource "aws_ecs_task_definition" "main" {
   requires_compatibilities = var.task_conf.requires_compatibilities
 
   runtime_platform {
-    operating_system_family = var.task.platform.operating_system_family
-    cpu_architecture        = var.task.platform.cpu_architecture
+    operating_system_family = var.task_conf.operating_system_family
+    cpu_architecture        = var.task_conf.cpu_architecture
   }
 
   # コンテナ設定
   container_definitions = jsonencode([
     {
       name      = var.task_conf.name
-      image     = var.task_conf.image_uri
+      image     = var.image_uri
       essential = var.task_conf.essential
 
       # ポートフォワーディング設定
@@ -146,23 +146,23 @@ resource "aws_ecs_task_definition" "main" {
 # ECS / Service
 #------------------------------
 resource "aws_ecs_service" "main" {
-  tags            = { Name = var.service_conf.service_name }
+  tags            = { Name = var.service_name }
   cluster         = aws_ecs_cluster.main.arn
   task_definition = aws_ecs_task_definition.main.arn
 
-  name          = var.service_conf.service_name
+  name          = var.service_name
   desired_count = var.service_conf.desired_count
   launch_type   = var.service_conf.launch_type
 
   network_configuration {
-    subnets          = var.service_conf.subnets
-    security_groups  = var.service_conf.security_groups
+    subnets          = var.subnets
+    security_groups  = var.security_groups
     assign_public_ip = var.service_conf.assign_public_ip
   }
 
   load_balancer {
-    target_group_arn = var.service_conf.target_group_arn
-    container_name   = var.task_conf.name
-    container_port   = var.task_conf.port
+    target_group_arn = var.target_group_arn
+    container_name   = var.task_conf.name # タスク定義と同じ
+    container_port   = var.task_conf.port # タスク定義と同じ
   }
 }

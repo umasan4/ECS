@@ -73,26 +73,15 @@ module "ecs_webapp" {
   cluster_name       = "${var.project}-${var.environment}-ecs-cluster"
   container_insights = var.container_insights
 
-  ### task definition ###
-  family                   = "${var.project}-${var.environment}-ecs-webapp-task"
-  cpu                      = var.cpu
-  memory                   = var.memory
-  network_mode             = var.network_mode
-  requires_compatibilities = var.requires_compatibilities
-
-  ### task definition -> container definition ###
-  # container_name = "webapp"
-  # container_port = var.container_port
+  ### Task definition ###
+  family    = "${var.project}-${var.environment}-ecs-webapp-task"
   image_uri = "${data.aws_ecr_repository.webapp.repository_url}:latest"
+  task_conf = var.task_conf
+  db_conf   = var.db_conf
 
-  task      = var.task
-  db_config = var.db_config
-
-  ### service ###
+  ### Service ###
   service_name     = "${var.project}-${var.environment}-ecs-webapp-service"
-  desired_count    = var.desired_count
-  launch_type      = var.launch_type
-  assign_public_ip = var.assign_public_ip
+  service_conf     = var.service_conf
   subnets          = values(module.vpc_base.private_subnet_ids)
   security_groups  = [module.webapp_sg.sg_ids]
   target_group_arn = module.frontend.tg_arn

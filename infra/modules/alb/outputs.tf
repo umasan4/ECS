@@ -1,5 +1,5 @@
 output "load_balancer_arn" {
-  value = aws_lb.frontend.arn
+  value = aws_lb.main.arn
 }
 
 output "tg_arn" {
@@ -7,5 +7,5 @@ output "tg_arn" {
 }
 
 output "dns_name" {
-  value = aws_lb.frontend.dns_name
+  value = aws_lb.main.dns_name
 }
