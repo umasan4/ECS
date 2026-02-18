@@ -25,3 +25,26 @@ variable "bucket_suffix" {
   type    = string
   default = "remote-backend"
 }
+
+#-------------------------------
+# oidc
+#-------------------------------
+variable "name" {
+  type    = string
+  default = "github-actions-oidc-role"
+}
+
+variable "github_repo" {
+  type    = string
+  default = "yuma-inoue4/ECS"
+}
+
+variable "role_name" {
+  type    = string
+  default = "github-actions-oidc-role"
+}
+
+variable "policy_arn" {
+  type    = string
+  default = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
